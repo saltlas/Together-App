@@ -3,22 +3,29 @@ import pandas as pd
 import plotly.express as px
 import dash_mantine_components as dmc
 
+# load dataset
 df = pd.read_csv('sentimentdataset.csv')
 
-# splitting hashtags into one per row
+# splitting hashtags into one per row and stripping country column for filtering purposes
+
 df['Country'] = df['Country'].str.strip()
 df['Hashtags'] = (df['Hashtags'].str.strip()).str.split(' ')
 df = df.explode('Hashtags').reset_index(drop=True)
-print(df)
 app = Dash()
 
 app.layout = html.Div(children=[
+
+    # title and subtitle
+
     html.H1(children='Likes/Retweets on Social Media Posts Over Time by Country or Hashtag'),
 
     html.Div(children='''
         Can be used to visualise trends or sentiment over time.
 
     '''),
+
+    # filter menus
+
     html.Div([
 
         html.Div([
@@ -63,12 +70,12 @@ app.layout = html.Div(children=[
     Input('yaxis-type', 'value')
     )
 def update_graph(country_filter_name, hashtag_filter_name, filter_type, yaxis_type):
+
     if filter_type == "Filter by hashtags":
         dff = df[(df['Hashtags'] == hashtag_filter_name)]
     elif filter_type == "Filter by country":
         dff = df[(df['Country'] == country_filter_name)]
 
-    print(dff[yaxis_type])
 
     fig = px.scatter(x=pd.to_datetime(dff['Timestamp']),
                      y=dff[yaxis_type],
@@ -81,6 +88,8 @@ def update_graph(country_filter_name, hashtag_filter_name, filter_type, yaxis_ty
 
     fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
 
+
+    # configuring what is shown when a node is hovered over with mouse
     fig.update_traces(hovertemplate=f'{yaxis_type}'+
         ': %{y}'+
         '<br>Date: %{x}'+

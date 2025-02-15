@@ -1,3 +1,4 @@
-dash~=2.18.2
-dash-mantine-components~=0.12.1
-statsmodels~=0.14.4
+dash==2.18.2
+dash_mantine_components==0.12.1
+pandas==2.2.3
+plotly==6.0.0

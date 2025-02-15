@@ -13,7 +13,7 @@ df['Hashtags'] = (df['Hashtags'].str.strip()).str.split(' ')
 df = df.explode('Hashtags').reset_index(drop=True)
 app = Dash()
 
-app.layout = html.Div(children=[
+app.layout = html.Div(style={'backgroundColor':'#d1c5c5','borderStyle':'solid', 'padding':'20px'}, children=[
 
     # title and subtitle
 

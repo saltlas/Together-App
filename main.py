@@ -12,18 +12,24 @@ df = df.explode('Hashtags').reset_index(drop=True)
 print(df)
 app = Dash()
 
-app.layout = html.Div([
+app.layout = html.Div(children=[
+    html.H1(children='Likes/Retweets on Social Media Posts Over Time by Country or Hashtag'),
+
+    html.Div(children='''
+        Can be used to visualise trends or sentiment over time.
+
+    '''),
     html.Div([
 
         html.Div([
             dcc.Dropdown(
-                df['Hashtags'].unique(),
-                "#Nature",
-                id='xaxis-column'
+                df['Country'].unique(),
+                "USA",
+                id='country-filter'
             ),
             dcc.RadioItems(
-                ['Filter by hashtags', 'Filter by country'],
-                'Filter by hashtags',
+                ['Filter by country', 'Filter by hashtags'],
+                'Filter by country',
                 id='filter-type',
                 inline=True
             )
@@ -31,9 +37,9 @@ app.layout = html.Div([
 
         html.Div([
             dcc.Dropdown(
-                df['Country'].unique(),
-                "USA",
-                id='yaxis-column'
+                df['Hashtags'].unique(),
+                "#Nature",
+                id='hashtag-filter'
             ),
             dcc.RadioItems(
                 ['Likes', 'Retweets'],
@@ -51,28 +57,40 @@ app.layout = html.Div([
 
 @callback(
     Output('indicator-graphic', 'figure'),
-    Input('xaxis-column', 'value'),
-    Input('yaxis-column', 'value'),
+    Input('country-filter', 'value'),
+    Input('hashtag-filter', 'value'),
     Input('filter-type', 'value'),
     Input('yaxis-type', 'value')
     )
-def update_graph(xaxis_column_name, yaxis_column_name, filter_type, yaxis_type):
+def update_graph(country_filter_name, hashtag_filter_name, filter_type, yaxis_type):
     if filter_type == "Filter by hashtags":
-        dff = df[(df['Hashtags'] == xaxis_column_name)]
+        dff = df[(df['Hashtags'] == hashtag_filter_name)]
     elif filter_type == "Filter by country":
-        dff = df[(df['Country'] == yaxis_column_name)]
+        dff = df[(df['Country'] == country_filter_name)]
 
     print(dff[yaxis_type])
 
     fig = px.scatter(x=pd.to_datetime(dff['Timestamp']),
                      y=dff[yaxis_type],
-                     hover_name=dff['Sentiment'],
                      color=dff['Sentiment'],
                      trendline="lowess",
-                     trendline_scope="overall"
+                     trendline_scope="overall",
+                     data_frame=dff,
+                     custom_data=['Sentiment', 'Platform']
                      )
 
     fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
+
+    fig.update_traces(hovertemplate=f'{yaxis_type}'+
+        ': %{y}'+
+        '<br>Date: %{x}'+
+        '<br>Sentiment: %{customdata[0]}'+
+        '<br>Platform: %{customdata[1]}'+
+        '<extra></extra>')
+
+    fig.update_xaxes(title="Timestamp")
+
+    fig.update_yaxes(title=yaxis_type)
 
     return fig
 
